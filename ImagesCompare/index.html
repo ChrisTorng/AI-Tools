@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖片比較滑動器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        .image-compare {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        .image-compare img {
+            display: block;
+            width: 100%;
+        }
+        .image-compare .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 50%;
+            overflow: hidden;
+        }
+        .image-compare .overlay img {
+            display: block;
+            width: 200%;
+        }
+        .slider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: white;
+            cursor: ew-resize;
+        }
+        .slider:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .inputs {
+            margin-bottom: 20px;
+        }
+        .inputs input {
+            width: calc(50% - 5px);
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .inputs button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .inputs button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="inputs">
+            <input type="text" id="lowResUrl" placeholder="輸入低解析度圖片URL">
+            <input type="text" id="highResUrl" placeholder="輸入高解析度圖片URL">
+            <button onclick="loadImages()">載入圖片</button>
+        </div>
+        <div class="image-compare">
+            <img src="/api/placeholder/800/600" alt="高解析度圖片">
+            <div class="overlay">
+                <img src="/api/placeholder/800/600" alt="低解析度圖片">
+            </div>
+            <div class="slider"></div>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.querySelector('.slider');
+        const overlay = document.querySelector('.overlay');
+        const container = document.querySelector('.image-compare');
+
+        let isDown = false;
+
+        slider.addEventListener('mousedown', () => isDown = true);
+        document.addEventListener('mouseup', () => isDown = false);
+        document.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = Math.max(0, Math.min(100, x / rect.width * 100));
+            
+            overlay.style.width = `${percent}%`;
+            slider.style.left = `${percent}%`;
+        });
+
+        function loadImages() {
+            const lowResUrl = document.getElementById('lowResUrl').value;
+            const highResUrl = document.getElementById('highResUrl').value;
+            
+            if (lowResUrl && highResUrl) {
+                document.querySelector('.overlay img').src = lowResUrl;
+                document.querySelector('.image-compare > img').src = highResUrl;
+            } else {
+                alert('請輸入兩個有效的圖片URL');
+            }
+        }
+    </script>
+</body>
+</html>
