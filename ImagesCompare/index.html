@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>圖片比較滑動器</title>
+    <title>高級圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            padding: 20px;
             background-color: #f0f0f0;
         }
         .container {
             max-width: 800px;
-            width: 100%;
+            margin: 0 auto;
         }
         .image-compare {
             position: relative;
             width: 100%;
             overflow: hidden;
+            margin-bottom: 20px;
         }
         .image-compare img {
             display: block;
@@ -63,15 +61,34 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        .inputs {
+        .thumbnails {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
-        .inputs input {
-            width: calc(50% - 5px);
-            padding: 5px;
+        .thumbnail {
+            width: 18%;
+            text-align: center;
+            cursor: pointer;
+        }
+        .thumbnail img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 5px;
+        }
+        .thumbnail.active {
+            border: 2px solid #4CAF50;
+        }
+        .thumbnail:first-child {
+            cursor: default;
+            opacity: 0.7;
+        }
+        #jsonInput {
+            width: 100%;
+            height: 100px;
             margin-bottom: 10px;
         }
-        .inputs button {
+        #loadButton {
             width: 100%;
             padding: 10px;
             background-color: #4CAF50;
@@ -79,31 +96,33 @@
             border: none;
             cursor: pointer;
         }
-        .inputs button:hover {
+        #loadButton:hover {
             background-color: #45a049;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="inputs">
-            <input type="text" id="lowResUrl" placeholder="輸入低解析度圖片URL">
-            <input type="text" id="highResUrl" placeholder="輸入高解析度圖片URL">
-            <button onclick="loadImages()">載入圖片</button>
-        </div>
+        <textarea id="jsonInput" placeholder="輸入 JSON 圖片配置"></textarea>
+        <button id="loadButton" onclick="loadImagesFromJson()">載入圖片</button>
+        <div class="thumbnails" id="thumbnails"></div>
         <div class="image-compare">
-            <img src="/api/placeholder/800/600" alt="高解析度圖片">
+            <img src="/api/placeholder/800/600" alt="比較圖片">
             <div class="overlay">
-                <img src="/api/placeholder/800/600" alt="低解析度圖片">
+                <img src="/api/placeholder/800/600" alt="原始圖片">
             </div>
             <div class="slider"></div>
         </div>
     </div>
 
     <script>
+        let images = [];
         const slider = document.querySelector('.slider');
         const overlay = document.querySelector('.overlay');
         const container = document.querySelector('.image-compare');
+        const thumbnailsContainer = document.getElementById('thumbnails');
+        const compareImg = document.querySelector('.image-compare > img');
+        const originalImg = document.querySelector('.overlay img');
 
         let isDown = false;
 
@@ -119,20 +138,43 @@
             slider.style.left = `${percent}%`;
         });
 
-        function loadImages() {
-            const lowResUrl = document.getElementById('lowResUrl').value;
-            const highResUrl = document.getElementById('highResUrl').value;
-            
-            if (lowResUrl && highResUrl) {
-                document.querySelector('.overlay img').src = lowResUrl;
-                document.querySelector('.image-compare > img').src = highResUrl;
-
-                // 重置滑動條位置
-                overlay.style.width = '50%';
-                slider.style.left = '50%';
-            } else {
-                alert('請輸入兩個有效的圖片URL');
+        function loadImagesFromJson() {
+            try {
+                const json = JSON.parse(document.getElementById('jsonInput').value);
+                if (Array.isArray(json) && json.length === 5) {
+                    images = json;
+                    renderThumbnails();
+                    setCompareImage(1);  // 設置第二張圖片作為初始比較圖
+                } else {
+                    throw new Error('JSON 必須包含恰好 5 張圖片的數組');
+                }
+            } catch (error) {
+                alert('無效的 JSON 格式: ' + error.message);
             }
+        }
+
+        function renderThumbnails() {
+            thumbnailsContainer.innerHTML = '';
+            images.forEach((img, index) => {
+                const thumbnail = document.createElement('div');
+                thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+                thumbnail.innerHTML = `
+                    <img src="${img.url}" alt="${img.title}">
+                    <div>${img.title}</div>
+                `;
+                if (index > 0) {
+                    thumbnail.onclick = () => setCompareImage(index);
+                }
+                thumbnailsContainer.appendChild(thumbnail);
+            });
+            originalImg.src = images[0].url;
+        }
+
+        function setCompareImage(index) {
+            compareImg.src = images[index].url;
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === 0 || i === index);
+            });
         }
     </script>
 </body>
