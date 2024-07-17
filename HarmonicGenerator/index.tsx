@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Slider } from '@/components/ui/slider';
 
 const HarmonicGenerator = () => {
@@ -6,6 +6,7 @@ const HarmonicGenerator = () => {
   const [harmonics, setHarmonics] = useState([1, 0.5, 0.25, 0.125, 0.0625]);
   const [audioContext, setAudioContext] = useState(null);
   const [oscillator, setOscillator] = useState(null);
+  const [gainNode, setGainNode] = useState(null);
 
   useEffect(() => {
     const newAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -18,42 +19,60 @@ const HarmonicGenerator = () => {
     };
   }, []);
 
-  useEffect(() => {
+  const createOscillator = useCallback(() => {
     if (audioContext) {
-      if (oscillator) {
-        oscillator.stop();
-      }
-
       const newOscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      const newGainNode = audioContext.createGain();
       
-      newOscillator.type = 'custom';
       const real = new Float32Array([0, ...harmonics]);
       const imag = new Float32Array(real.length).fill(0);
       const wave = audioContext.createPeriodicWave(real, imag);
+      
       newOscillator.setPeriodicWave(wave);
-
       newOscillator.frequency.setValueAtTime(fundamental, audioContext.currentTime);
-      newOscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      
+      newOscillator.connect(newGainNode);
+      newGainNode.connect(audioContext.destination);
 
       newOscillator.start();
       setOscillator(newOscillator);
+      setGainNode(newGainNode);
 
       return () => {
         newOscillator.stop();
+        newOscillator.disconnect();
+        newGainNode.disconnect();
       };
     }
   }, [audioContext, fundamental, harmonics]);
 
+  useEffect(() => {
+    let cleanup;
+    if (audioContext) {
+      cleanup = createOscillator();
+    }
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [audioContext, createOscillator]);
+
   const handleFundamentalChange = (newValue) => {
     setFundamental(newValue[0]);
+    if (oscillator) {
+      oscillator.frequency.setValueAtTime(newValue[0], audioContext.currentTime);
+    }
   };
 
   const handleHarmonicChange = (index, newValue) => {
     const newHarmonics = [...harmonics];
     newHarmonics[index] = newValue[0];
     setHarmonics(newHarmonics);
+    if (oscillator) {
+      const real = new Float32Array([0, ...newHarmonics]);
+      const imag = new Float32Array(real.length).fill(0);
+      const wave = audioContext.createPeriodicWave(real, imag);
+      oscillator.setPeriodicWave(wave);
+    }
   };
 
   return (
