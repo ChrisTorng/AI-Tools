@@ -1,0 +1,111 @@
+// 遊戲設置
+const ROWS = 10;
+const COLS = 10;
+const MINES = 15;
+
+// 初始化遊戲板
+function createBoard() {
+    const board = [];
+    for (let i = 0; i < ROWS; i++) {
+        board[i] = [];
+        for (let j = 0; j < COLS; j++) {
+            board[i][j] = {
+                isMine: false,
+                isRevealed: false,
+                neighborMines: 0
+            };
+        }
+    }
+    return board;
+}
+
+// 放置地雷
+function placeMines(board) {
+    let minesPlaced = 0;
+    while (minesPlaced < MINES) {
+        const row = Math.floor(Math.random() * ROWS);
+        const col = Math.floor(Math.random() * COLS);
+        if (!board[row][col].isMine) {
+            board[row][col].isMine = true;
+            minesPlaced++;
+        }
+    }
+}
+
+// 計算每個格子周圍的地雷數
+function calculateNeighborMines(board) {
+    for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+            if (!board[row][col].isMine) {
+                let count = 0;
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (row + i >= 0 && row + i < ROWS && col + j >= 0 && col + j < COLS) {
+                            if (board[row + i][col + j].isMine) count++;
+                        }
+                    }
+                }
+                board[row][col].neighborMines = count;
+            }
+        }
+    }
+}
+
+// 揭示格子
+function revealCell(board, row, col) {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS || board[row][col].isRevealed) {
+        return;
+    }
+
+    board[row][col].isRevealed = true;
+
+    if (board[row][col].neighborMines === 0) {
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                revealCell(board, row + i, col + j);
+            }
+        }
+    }
+}
+
+// 檢查是否獲勝
+function checkWin(board) {
+    for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+            if (!board[row][col].isMine && !board[row][col].isRevealed) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// 遊戲主循環
+function playGame() {
+    const board = createBoard();
+    placeMines(board);
+    calculateNeighborMines(board);
+
+    while (true) {
+        // 在這裡添加顯示遊戲板的代碼
+        console.log(board);  // 這只是一個簡單的顯示方式，實際應用中應該有更好的視覺呈現
+
+        const row = parseInt(prompt("輸入行號 (0-9):"));
+        const col = parseInt(prompt("輸入列號 (0-9):"));
+
+        if (board[row][col].isMine) {
+            console.log("遊戲結束！你踩到地雷了。");
+            break;
+        }
+
+        revealCell(board, row, col);
+
+        if (checkWin(board)) {
+            console.log("恭喜你贏了！");
+            break;
+        }
+    }
+}
+
+// 開始遊戲
+playGame();
