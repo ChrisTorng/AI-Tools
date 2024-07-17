@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自動載入圖片比較滑動器</title>
+    <title>優化寬度的圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             background-color: #f0f0f0;
         }
         .container {
-            max-width: 800px;
+            max-width: 100%;
             margin: 0 auto;
         }
         .image-compare {
@@ -63,16 +63,15 @@
         }
         .thumbnails {
             display: flex;
-            justify-content: flex-start;
-            margin-bottom: 20px;
             flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
         .thumbnail {
-            width: 18%;
+            flex-basis: calc(20% - 10px);
+            margin-bottom: 10px;
             text-align: center;
             cursor: pointer;
-            margin-right: 2%;
-            margin-bottom: 10px;
         }
         .thumbnail img {
             width: 100%;
@@ -85,6 +84,12 @@
         .thumbnail:first-child {
             cursor: default;
             opacity: 0.7;
+        }
+        .thumbnail-title {
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -101,10 +106,16 @@
     </div>
 
     <script>
-        // 內嵌 JSON 配置
         const images = [
-            {"url": "D:\\Projects\\GitHub\\ChrisTorng\\InfoProcess\\images\\eBirdList.png", "title": "原始圖片"},
-            {"url": "D:\\Projects\\GitHub\\ChrisTorng\\InfoProcess\\images\\eBirdTable.png", "title": "高解析度圖片"}
+            {"url": "../images/Elementary/畢業紀念照.jpg", "title": "畢業紀念照"},
+            {"url": "../images/Elementary/畢業紀念照高解析度.jpg", "title": "高解析度"},
+            {"url": "../images/Elementary/畢業紀念照 upscale.png", "title": "upscale"},
+            {"url": "../images/Elementary/畢業紀念照 supir upscale.png", "title": "supir upscale"},
+            {"url": "../images/Elementary/畢業紀念照 ReFocusV3 upscale.png", "title": "ReFocusV3upscale"},
+            {"url": "../images/Elementary/ComfyUI_temp_szaiv_00001_.png", "title": "1"},
+            {"url": "../images/Elementary/ComfyUI_temp_szaiv_00005_.png", "title": "5"},
+            {"url": "../images/Elementary/ComfyUI_temp_szaiv_00006_.png", "title": "6"},
+            {"url": "../images/Elementary/ComfyUI_temp_szaiv_00009_.png", "title": "9"},
         ];
 
         const slider = document.querySelector('.slider');
@@ -135,7 +146,7 @@
                 thumbnail.className = 'thumbnail' + (index === 0 || index === 1 ? ' active' : '');
                 thumbnail.innerHTML = `
                     <img src="${img.url}" alt="${img.title}">
-                    <div>${img.title}</div>
+                    <div class="thumbnail-title">${img.title}</div>
                 `;
                 if (index > 0) {
                     thumbnail.onclick = () => setCompareImage(index);
