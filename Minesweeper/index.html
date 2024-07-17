@@ -91,7 +91,7 @@
         let firstClick = true;
         let timer;
         let startTime;
-        let bestTime = localStorage.getItem('bestTime') || Infinity;
+        let bestTime = Infinity;
 
         function createBoard() {
             board = [];
@@ -294,7 +294,6 @@
             const currentTime = Math.floor((Date.now() - startTime) / 1000);
             if (currentTime < bestTime) {
                 bestTime = currentTime;
-                localStorage.setItem('bestTime', bestTime);
                 document.getElementById('best-time').textContent = `Best Time: ${bestTime}s`;
             }
         }
