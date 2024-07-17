@@ -1,10 +1,9 @@
-# AI-Tools
-Collect my AI generated tools, with little human modification.
+# ChrisTorng AI Tools
 
-[Live demo](https://christorng.github.io/AI-Tools/) / [Source](https://github.com/ChrisTorng/AI-Tools)
+Collect my AI generated tools.
 
-![Minesweeper Icon](Minesweeper/icon.svg){width=1em height=1em} [Minesweeper](Minesweeper/index.html)
+## [Live demo](https://christorng.github.io/AI-Tools/)
 
-[ImagesCompare](ImagesCompare)
-
-[HarmonicGenerator](HarmonicGenerator/dist/index.html)
+* [Minesweeper](https://christorng.github.io/AI-Tools/Minesweeper/)
+* [Images Compare](https://christorng.github.io/AI-Tools/ImagesCompare/)
+* [Harmonic Generator](https://christorng.github.io/AI-Tools/HarmonicGenerator/dist/)
