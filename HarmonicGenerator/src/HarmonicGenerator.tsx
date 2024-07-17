@@ -1,32 +1,32 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Pause } from 'lucide-react';
 
-const noteFrequencies = {
+const noteFrequencies: { [key: string]: number } = {
   'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
   'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25
 };
 
-const HarmonicGenerator = () => {
-  const [fundamental, setFundamental] = useState(440);
-  const [harmonics, setHarmonics] = useState([
+interface Harmonic {
+  amplitude: number;
+  enabled: boolean;
+}
+
+const HarmonicGenerator: React.FC = () => {
+  const [fundamental, setFundamental] = useState<number>(440);
+  const [harmonics, setHarmonics] = useState<Harmonic[]>([
     { amplitude: 1, enabled: true },
     { amplitude: 0.5, enabled: true },
     { amplitude: 0.25, enabled: true },
     { amplitude: 0.125, enabled: true },
     { amplitude: 0.0625, enabled: true },
   ]);
-  const [audioContext, setAudioContext] = useState(null);
-  const [oscillator, setOscillator] = useState(null);
-  const [gainNode, setGainNode] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const canvasRef = useRef(null);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [oscillator, setOscillator] = useState<OscillatorNode | null>(null);
+  const [gainNode, setGainNode] = useState<GainNode | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const newAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const newAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     setAudioContext(newAudioContext);
 
     return () => {
@@ -59,7 +59,7 @@ const HarmonicGenerator = () => {
   }, [audioContext, fundamental, harmonics]);
 
   useEffect(() => {
-    let cleanup;
+    let cleanup: (() => void) | undefined;
     if (audioContext && isPlaying) {
       cleanup = createOscillator();
     }
@@ -68,7 +68,7 @@ const HarmonicGenerator = () => {
     };
   }, [audioContext, createOscillator, isPlaying]);
 
-  const updateOscillator = (osc = oscillator) => {
+  const updateOscillator = (osc: OscillatorNode = oscillator!) => {
     if (osc && audioContext) {
       const real = new Float32Array([0, ...harmonics.map(h => h.enabled ? h.amplitude : 0)]);
       const imag = new Float32Array(real.length).fill(0);
@@ -81,27 +81,27 @@ const HarmonicGenerator = () => {
 
   const handlePlayStop = () => {
     if (isPlaying) {
-      oscillator.stop();
+      oscillator?.stop();
       setOscillator(null);
       setGainNode(null);
     }
     setIsPlaying(!isPlaying);
   };
 
-  const handleFundamentalChange = (newValue) => {
+  const handleFundamentalChange = (newValue: string) => {
     setFundamental(parseFloat(newValue));
     updateOscillator();
   };
 
-  const handleHarmonicChange = (index, newValue) => {
+  const handleHarmonicChange = (index: number, newValue: number) => {
     const newHarmonics = harmonics.map((h, i) => 
-      i === index ? { ...h, amplitude: newValue[0] } : h
+      i === index ? { ...h, amplitude: newValue } : h
     );
     setHarmonics(newHarmonics);
     updateOscillator();
   };
 
-  const handleHarmonicToggle = (index) => {
+  const handleHarmonicToggle = (index: number) => {
     const newHarmonics = harmonics.map((h, i) => 
       i === index ? { ...h, enabled: !h.enabled } : h
     );
@@ -109,8 +109,8 @@ const HarmonicGenerator = () => {
     updateOscillator();
   };
 
-  const setPresetWaveform = (type) => {
-    let newHarmonics;
+  const setPresetWaveform = (type: string) => {
+    let newHarmonics: Harmonic[];
     switch (type) {
       case 'sine':
         newHarmonics = [{ amplitude: 1, enabled: true }, ...Array(4).fill({ amplitude: 0, enabled: false })];
@@ -140,11 +140,13 @@ const HarmonicGenerator = () => {
     updateOscillator();
   };
 
-  const drawWaveform = (real, imag) => {
+  const drawWaveform = (real: Float32Array, imag: Float32Array) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
     const width = canvas.width;
     const height = canvas.height;
     ctx.clearRect(0, 0, width, height);
@@ -166,52 +168,46 @@ const HarmonicGenerator = () => {
   };
 
   return (
-    <div className="p-4 bg-gray-100 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-4">高級互動式泛音生成器</h2>
-      <div className="mb-4 flex items-center space-x-4">
-        <Button onClick={handlePlayStop}>
-          {isPlaying ? <Pause /> : <Play />}
-        </Button>
-        <Select onValueChange={handleFundamentalChange} value={fundamental.toString()}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="選擇音高" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(noteFrequencies).map(([note, freq]) => (
-              <SelectItem key={note} value={freq.toString()}>{note} ({freq} Hz)</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="container">
+      <h2>高級互動式泛音生成器</h2>
+      <div>
+        <button onClick={handlePlayStop}>
+          {isPlaying ? "停止" : "播放"}
+        </button>
+        <select onChange={(e) => handleFundamentalChange(e.target.value)} value={fundamental}>
+          {Object.entries(noteFrequencies).map(([note, freq]) => (
+            <option key={note} value={freq.toString()}>{note} ({freq} Hz)</option>
+          ))}
+        </select>
       </div>
-      <div className="mb-4">
-        <Button onClick={() => setPresetWaveform('sine')} className="mr-2">正弦波</Button>
-        <Button onClick={() => setPresetWaveform('square')} className="mr-2">方波</Button>
-        <Button onClick={() => setPresetWaveform('sawtooth')}>鋸齒波</Button>
+      <div>
+        <button onClick={() => setPresetWaveform('sine')}>正弦波</button>
+        <button onClick={() => setPresetWaveform('square')}>方波</button>
+        <button onClick={() => setPresetWaveform('sawtooth')}>鋸齒波</button>
       </div>
       {harmonics.map((harmonic, index) => (
-        <div key={index} className="mb-4 flex items-center">
-          <div className="flex-grow">
-            <label className="block text-sm font-medium text-gray-700">
-              第 {index} 泛音 ({(index + 1) * fundamental} Hz): {harmonic.amplitude.toFixed(2)}
-            </label>
-            <Slider
-              value={[harmonic.amplitude]}
-              onValueChange={(newValue) => handleHarmonicChange(index, newValue)}
-              max={1}
-              min={0}
-              step={0.01}
-              className="mt-1"
-              disabled={!harmonic.enabled}
-            />
-          </div>
-          <Switch
+        <div key={index}>
+          <label>
+            第 {index} 泛音 ({(index + 1) * fundamental} Hz): {harmonic.amplitude.toFixed(2)}
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={harmonic.amplitude}
+            onChange={(e) => handleHarmonicChange(index, parseFloat(e.target.value))}
+            disabled={!harmonic.enabled}
+            className="slider"
+          />
+          <input
+            type="checkbox"
             checked={harmonic.enabled}
-            onCheckedChange={() => handleHarmonicToggle(index)}
-            className="ml-2"
+            onChange={() => handleHarmonicToggle(index)}
           />
         </div>
       ))}
-      <canvas ref={canvasRef} width="400" height="200" className="border border-gray-300" />
+      <canvas ref={canvasRef} width={400} height={200} />
     </div>
   );
 };
