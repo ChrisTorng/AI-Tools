@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片比较滑动器</title>
+    <title>圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,7 +26,6 @@
         .image-compare img {
             display: block;
             width: 100%;
-            height: auto;
         }
         .image-compare .overlay {
             position: absolute;
@@ -38,9 +37,8 @@
         }
         .image-compare .overlay img {
             display: block;
-            width: 200%; /* 将宽度设置为200%以确保覆盖整个区域 */
-            height: auto;
-            max-width: none; /* 防止图片被限制 */
+            width: 200%;  /* 改為200% */
+            max-width: none;  /* 防止圖片被限制 */
         }
         .slider {
             position: absolute;
@@ -86,14 +84,14 @@
 <body>
     <div class="container">
         <div class="inputs">
-            <input type="text" id="lowResUrl" placeholder="输入低分辨率图片URL">
-            <input type="text" id="highResUrl" placeholder="输入高分辨率图片URL">
-            <button onclick="loadImages()">加载图片</button>
+            <input type="text" id="lowResUrl" placeholder="輸入低解析度圖片URL">
+            <input type="text" id="highResUrl" placeholder="輸入高解析度圖片URL">
+            <button onclick="loadImages()">載入圖片</button>
         </div>
         <div class="image-compare">
-            <img src="/api/placeholder/800/600" alt="高分辨率图片">
+            <img src="/api/placeholder/800/600" alt="高解析度圖片">
             <div class="overlay">
-                <img src="/api/placeholder/800/600" alt="低分辨率图片">
+                <img src="/api/placeholder/800/600" alt="低解析度圖片">
             </div>
             <div class="slider"></div>
         </div>
@@ -121,41 +119,22 @@
             overlayImage.style.marginLeft = `${-1 * (100 - percent)}%`;
         });
 
-        async function loadImages() {
+        function loadImages() {
             const lowResUrl = document.getElementById('lowResUrl').value;
             const highResUrl = document.getElementById('highResUrl').value;
             
             if (lowResUrl && highResUrl) {
-                try {
-                    const lowResDataUrl = await fetchImageAsDataUrl(lowResUrl);
-                    const highResDataUrl = await fetchImageAsDataUrl(highResUrl);
-                    
-                    overlayImage.src = lowResDataUrl;
-                    document.querySelector('.image-compare > img').src = highResDataUrl;
-                    
-                    // 重置滑动条位置和图片样式
-                    overlay.style.width = '50%';
-                    slider.style.left = '50%';
-                    overlayImage.style.width = '200%';
-                    overlayImage.style.marginLeft = '0';
-                } catch (error) {
-                    console.error('加载图片时发生错误:', error);
-                    alert('加载图片时发生错误。请确保URL有效且允许跨源访问。');
-                }
-            } else {
-                alert('请输入两个有效的图片URL');
-            }
-        }
+                overlayImage.src = lowResUrl;
+                document.querySelector('.image-compare > img').src = highResUrl;
 
-        async function fetchImageAsDataUrl(url) {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
+                // 重置滑動條位置和圖片樣式
+                overlay.style.width = '50%';
+                slider.style.left = '50%';
+                overlayImage.style.width = '200%';
+                overlayImage.style.marginLeft = '0';
+            } else {
+                alert('請輸入兩個有效的圖片URL');
+            }
         }
     </script>
 </body>
