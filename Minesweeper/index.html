@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>踩地雷遊戲 - 改進版</title>
+    <title>Enhanced Minesweeper</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,11 +15,12 @@
             background-color: #f0f0f0;
         }
         #game-container {
-            text-align: center;
+            display: flex;
+            gap: 20px;
         }
         #minesweeper {
             display: inline-grid;
-            grid-template-columns: repeat(10, 30px);
+            grid-template-columns: repeat(15, 30px);
             gap: 1px;
             background-color: #bdbdbd;
             border: 3px solid #7b7b7b;
@@ -34,6 +35,7 @@
             align-items: center;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
         .revealed {
             background-color: #e0e0e0;
@@ -44,28 +46,52 @@
         .flagged {
             background-color: #ffd700;
         }
+        #sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
         button {
-            margin-top: 10px;
-            padding: 5px 10px;
+            padding: 10px;
             font-size: 16px;
+            cursor: pointer;
+        }
+        #timer, #best-time {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        @keyframes reveal {
+            from {transform: scale(0.1); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+        .cell.revealed {
+            animation: reveal 0.3s ease-out;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>踩地雷遊戲 - 改進版</h1>
         <div id="minesweeper"></div>
-        <p id="message">遊戲開始！左鍵點擊揭示格子，右鍵標記地雷。同時按下左右鍵可快速揭示周圍格子。</p>
-        <button onclick="initializeGame()">重新開始</button>
+        <div id="sidebar">
+            <h2>Minesweeper</h2>
+            <p id="timer">Time: 0s</p>
+            <p id="best-time">Best Time: N/A</p>
+            <button onclick="initializeGame()">New Game</button>
+            <p id="message">Click to start. Left click to reveal, right click to flag.</p>
+        </div>
     </div>
 
     <script>
-        const ROWS = 10;
-        const COLS = 10;
-        const MINES = 15;
+        const ROWS = 15;
+        const COLS = 15;
+        const MINES = 35;
 
         let board = [];
         let gameOver = false;
+        let firstClick = true;
+        let timer;
+        let startTime;
+        let bestTime = localStorage.getItem('bestTime') || Infinity;
 
         function createBoard() {
             board = [];
@@ -82,12 +108,12 @@
             }
         }
 
-        function placeMines() {
+        function placeMines(safeRow, safeCol) {
             let minesPlaced = 0;
             while (minesPlaced < MINES) {
                 const row = Math.floor(Math.random() * ROWS);
                 const col = Math.floor(Math.random() * COLS);
-                if (!board[row][col].isMine) {
+                if (!board[row][col].isMine && (row !== safeRow || col !== safeCol)) {
                     board[row][col].isMine = true;
                     minesPlaced++;
                 }
@@ -159,21 +185,31 @@
             event.preventDefault();
             if (gameOver) return;
 
-            if (event.button === 0 && event.buttons === 1) { // 只有左鍵點擊
+            if (firstClick) {
+                startTimer();
+                placeMines(row, col);
+                calculateNeighborMines();
+                firstClick = false;
+            }
+
+            if (event.button === 0 && event.buttons === 1) { // Left click only
                 if (board[row][col].isMine) {
                     gameOver = true;
                     revealAllMines();
-                    document.getElementById('message').textContent = '遊戲結束！你踩到地雷了。';
+                    stopTimer();
+                    document.getElementById('message').textContent = 'Game Over! You hit a mine.';
                 } else {
                     revealCell(row, col);
                     if (checkWin()) {
                         gameOver = true;
-                        document.getElementById('message').textContent = '恭喜你贏了！';
+                        stopTimer();
+                        updateBestTime();
+                        document.getElementById('message').textContent = 'Congratulations! You won!';
                     }
                 }
-            } else if (event.button === 2 && event.buttons === 2) { // 只有右鍵點擊
+            } else if (event.button === 2 && event.buttons === 2) { // Right click only
                 toggleFlag(row, col);
-            } else if (event.buttons === 3) { // 同時按下左右鍵
+            } else if (event.buttons === 3) { // Both left and right click
                 chordAction(row, col);
             }
         }
@@ -213,7 +249,8 @@
                                 if (board[row + i][col + j].isMine) {
                                     gameOver = true;
                                     revealAllMines();
-                                    document.getElementById('message').textContent = '遊戲結束！你踩到地雷了。';
+                                    stopTimer();
+                                    document.getElementById('message').textContent = 'Game Over! You hit a mine.';
                                     return;
                                 }
                             }
@@ -222,7 +259,9 @@
                 }
                 if (checkWin()) {
                     gameOver = true;
-                    document.getElementById('message').textContent = '恭喜你贏了！';
+                    stopTimer();
+                    updateBestTime();
+                    document.getElementById('message').textContent = 'Congratulations! You won!';
                 }
             }
         }
@@ -237,10 +276,36 @@
             }
         }
 
+        function startTimer() {
+            startTime = Date.now();
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+        }
+
+        function updateTimer() {
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = `Time: ${currentTime}s`;
+        }
+
+        function updateBestTime() {
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            if (currentTime < bestTime) {
+                bestTime = currentTime;
+                localStorage.setItem('bestTime', bestTime);
+                document.getElementById('best-time').textContent = `Best Time: ${bestTime}s`;
+            }
+        }
+
         function initializeGame() {
             createBoard();
-            placeMines();
-            calculateNeighborMines();
+            firstClick = true;
+            gameOver = false;
+            stopTimer();
+            document.getElementById('timer').textContent = 'Time: 0s';
+            document.getElementById('best-time').textContent = `Best Time: ${bestTime === Infinity ? 'N/A' : bestTime + 's'}`;
 
             const container = document.getElementById('minesweeper');
             container.innerHTML = '';
@@ -256,8 +321,7 @@
                 }
             }
 
-            gameOver = false;
-            document.getElementById('message').textContent = '遊戲開始！左鍵點擊揭示格子，右鍵標記地雷。同時按下左右鍵可快速揭示周圍格子。';
+            document.getElementById('message').textContent = 'Click to start. Left click to reveal, right click to flag.';
         }
 
         initializeGame();
