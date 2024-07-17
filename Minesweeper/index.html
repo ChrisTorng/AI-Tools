@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>踩地雷遊戲</title>
+    <title>踩地雷遊戲 - 靜態展示</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,7 +33,6 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            cursor: pointer;
         }
         .revealed {
             background-color: #e0e0e0;
@@ -41,156 +40,126 @@
         .mine {
             background-color: #ff0000;
         }
+        button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>踩地雷遊戲</h1>
-        <div id="minesweeper"></div>
-        <p id="message"></p>
-        <button onclick="initializeGame()">重新開始</button>
+        <h1>踩地雷遊戲 - 靜態展示</h1>
+        <div id="minesweeper">
+            <!-- 第一行 -->
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell"></div>
+            <!-- 第二行 -->
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">🚩</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">🚩</div>
+            <div class="cell revealed">2</div>
+            <div class="cell"></div>
+            <!-- 第三行 -->
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">2</div>
+            <div class="cell revealed">2</div>
+            <div class="cell revealed">🚩</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">2</div>
+            <div class="cell revealed">3</div>
+            <div class="cell revealed">🚩</div>
+            <div class="cell"></div>
+            <!-- 第四行 -->
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">🚩</div>
+            <div class="cell revealed">2</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">🚩</div>
+            <div class="cell revealed">2</div>
+            <div class="cell"></div>
+            <!-- 第五行 -->
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">0</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell revealed">1</div>
+            <div class="cell"></div>
+            <!-- 第六到第十行 -->
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+        </div>
+        <p id="message">遊戲進行中...</p>
+        <button>重新開始</button>
     </div>
-
-    <script>
-        const ROWS = 10;
-        const COLS = 10;
-        const MINES = 15;
-
-        let board = [];
-        let gameOver = false;
-
-        function createBoard() {
-            board = [];
-            for (let i = 0; i < ROWS; i++) {
-                board[i] = [];
-                for (let j = 0; j < COLS; j++) {
-                    board[i][j] = {
-                        isMine: false,
-                        isRevealed: false,
-                        neighborMines: 0
-                    };
-                }
-            }
-        }
-
-        function placeMines() {
-            let minesPlaced = 0;
-            while (minesPlaced < MINES) {
-                const row = Math.floor(Math.random() * ROWS);
-                const col = Math.floor(Math.random() * COLS);
-                if (!board[row][col].isMine) {
-                    board[row][col].isMine = true;
-                    minesPlaced++;
-                }
-            }
-        }
-
-        function calculateNeighborMines() {
-            for (let row = 0; row < ROWS; row++) {
-                for (let col = 0; col < COLS; col++) {
-                    if (!board[row][col].isMine) {
-                        let count = 0;
-                        for (let i = -1; i <= 1; i++) {
-                            for (let j = -1; j <= 1; j++) {
-                                if (row + i >= 0 && row + i < ROWS && col + j >= 0 && col + j < COLS) {
-                                    if (board[row + i][col + j].isMine) count++;
-                                }
-                            }
-                        }
-                        board[row][col].neighborMines = count;
-                    }
-                }
-            }
-        }
-
-        function revealCell(row, col) {
-            if (row < 0 || row >= ROWS || col < 0 || col >= COLS || board[row][col].isRevealed || gameOver) {
-                return;
-            }
-
-            board[row][col].isRevealed = true;
-            updateCell(row, col);
-
-            if (board[row][col].neighborMines === 0) {
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        revealCell(row + i, col + j);
-                    }
-                }
-            }
-        }
-
-        function checkWin() {
-            for (let row = 0; row < ROWS; row++) {
-                for (let col = 0; col < COLS; col++) {
-                    if (!board[row][col].isMine && !board[row][col].isRevealed) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        function updateCell(row, col) {
-            const cell = document.getElementById(`cell-${row}-${col}`);
-            cell.classList.add('revealed');
-            if (board[row][col].isMine) {
-                cell.classList.add('mine');
-                cell.textContent = '💣';
-            } else if (board[row][col].neighborMines > 0) {
-                cell.textContent = board[row][col].neighborMines;
-            }
-        }
-
-        function handleClick(row, col) {
-            if (gameOver) return;
-
-            if (board[row][col].isMine) {
-                gameOver = true;
-                revealAllMines();
-                document.getElementById('message').textContent = '遊戲結束！你踩到地雷了。';
-            } else {
-                revealCell(row, col);
-                if (checkWin()) {
-                    gameOver = true;
-                    document.getElementById('message').textContent = '恭喜你贏了！';
-                }
-            }
-        }
-
-        function revealAllMines() {
-            for (let row = 0; row < ROWS; row++) {
-                for (let col = 0; col < COLS; col++) {
-                    if (board[row][col].isMine) {
-                        updateCell(row, col);
-                    }
-                }
-            }
-        }
-
-        function initializeGame() {
-            createBoard();
-            placeMines();
-            calculateNeighborMines();
-
-            const container = document.getElementById('minesweeper');
-            container.innerHTML = '';
-
-            for (let row = 0; row < ROWS; row++) {
-                for (let col = 0; col < COLS; col++) {
-                    const cell = document.createElement('div');
-                    cell.id = `cell-${row}-${col}`;
-                    cell.className = 'cell';
-                    cell.addEventListener('click', () => handleClick(row, col));
-                    container.appendChild(cell);
-                }
-            }
-
-            gameOver = false;
-            document.getElementById('message').textContent = '';
-        }
-
-        initializeGame();
-    </script>
 </body>
 </html>
