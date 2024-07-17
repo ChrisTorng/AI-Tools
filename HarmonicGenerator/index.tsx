@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { X } from 'lucide-react';
 
 const HarmonicGenerator = () => {
   const [fundamental, setFundamental] = useState(440);
-  const [harmonics, setHarmonics] = useState([1, 0.5, 0.25, 0.125, 0.0625]);
+  const [harmonics, setHarmonics] = useState([
+    { amplitude: 1, enabled: true },
+    { amplitude: 0.5, enabled: true },
+    { amplitude: 0.25, enabled: true },
+    { amplitude: 0.125, enabled: true },
+    { amplitude: 0.0625, enabled: true },
+  ]);
   const [audioContext, setAudioContext] = useState(null);
   const [oscillator, setOscillator] = useState(null);
   const [gainNode, setGainNode] = useState(null);
@@ -24,9 +32,9 @@ const HarmonicGenerator = () => {
       const newOscillator = audioContext.createOscillator();
       const newGainNode = audioContext.createGain();
       
-      const real = new Float32Array([0, ...harmonics]);
+      const real = new Float32Array([0, ...harmonics.map(h => h.enabled ? h.amplitude : 0)]);
       const imag = new Float32Array(real.length).fill(0);
-      const wave = audioContext.createPeriodicWave(real, imag);
+      const wave = audioContext.createPeriodicWave(real, imag, { disableNormalization: true });
       
       newOscillator.setPeriodicWave(wave);
       newOscillator.frequency.setValueAtTime(fundamental, audioContext.currentTime);
@@ -65,12 +73,23 @@ const HarmonicGenerator = () => {
 
   const handleHarmonicChange = (index, newValue) => {
     const newHarmonics = [...harmonics];
-    newHarmonics[index] = newValue[0];
+    newHarmonics[index] = { ...newHarmonics[index], amplitude: newValue[0] };
     setHarmonics(newHarmonics);
-    if (oscillator) {
-      const real = new Float32Array([0, ...newHarmonics]);
+    updateOscillator(newHarmonics);
+  };
+
+  const handleHarmonicToggle = (index) => {
+    const newHarmonics = [...harmonics];
+    newHarmonics[index] = { ...newHarmonics[index], enabled: !newHarmonics[index].enabled };
+    setHarmonics(newHarmonics);
+    updateOscillator(newHarmonics);
+  };
+
+  const updateOscillator = (newHarmonics) => {
+    if (oscillator && audioContext) {
+      const real = new Float32Array([0, ...newHarmonics.map(h => h.enabled ? h.amplitude : 0)]);
       const imag = new Float32Array(real.length).fill(0);
-      const wave = audioContext.createPeriodicWave(real, imag);
+      const wave = audioContext.createPeriodicWave(real, imag, { disableNormalization: true });
       oscillator.setPeriodicWave(wave);
     }
   };
@@ -92,18 +111,32 @@ const HarmonicGenerator = () => {
         />
       </div>
       {harmonics.map((harmonic, index) => (
-        <div key={index} className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            第 {index + 1} 泛音: {harmonic.toFixed(2)}
-          </label>
-          <Slider
-            value={[harmonic]}
-            onValueChange={(newValue) => handleHarmonicChange(index, newValue)}
-            max={1}
-            min={0}
-            step={0.01}
-            className="mt-1"
+        <div key={index} className="mb-4 flex items-center">
+          <div className="flex-grow">
+            <label className="block text-sm font-medium text-gray-700">
+              第 {index} 泛音 ({(index + 1) * fundamental} Hz): {harmonic.amplitude.toFixed(2)}
+            </label>
+            <Slider
+              value={[harmonic.amplitude]}
+              onValueChange={(newValue) => handleHarmonicChange(index, newValue)}
+              max={1}
+              min={0}
+              step={0.01}
+              className="mt-1"
+              disabled={!harmonic.enabled}
+            />
+          </div>
+          <Switch
+            checked={harmonic.enabled}
+            onCheckedChange={() => handleHarmonicToggle(index)}
+            className="ml-2"
           />
+          <button
+            onClick={() => handleHarmonicToggle(index)}
+            className="ml-2 p-1 bg-red-500 text-white rounded"
+          >
+            <X size={16} />
+          </button>
         </div>
       ))}
     </div>
