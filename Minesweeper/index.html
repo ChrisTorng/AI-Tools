@@ -1,111 +1,195 @@
-// 遊戲設置
-const ROWS = 10;
-const COLS = 10;
-const MINES = 15;
-
-// 初始化遊戲板
-function createBoard() {
-    const board = [];
-    for (let i = 0; i < ROWS; i++) {
-        board[i] = [];
-        for (let j = 0; j < COLS; j++) {
-            board[i][j] = {
-                isMine: false,
-                isRevealed: false,
-                neighborMines: 0
-            };
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>踩地雷遊戲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
-    }
-    return board;
-}
-
-// 放置地雷
-function placeMines(board) {
-    let minesPlaced = 0;
-    while (minesPlaced < MINES) {
-        const row = Math.floor(Math.random() * ROWS);
-        const col = Math.floor(Math.random() * COLS);
-        if (!board[row][col].isMine) {
-            board[row][col].isMine = true;
-            minesPlaced++;
+        #game-container {
+            text-align: center;
         }
-    }
-}
+        #minesweeper {
+            display: inline-grid;
+            grid-template-columns: repeat(10, 30px);
+            gap: 1px;
+            background-color: #bdbdbd;
+            border: 3px solid #7b7b7b;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: #c0c0c0;
+            border: 1px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .revealed {
+            background-color: #e0e0e0;
+        }
+        .mine {
+            background-color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>踩地雷遊戲</h1>
+        <div id="minesweeper"></div>
+        <p id="message"></p>
+    </div>
 
-// 計算每個格子周圍的地雷數
-function calculateNeighborMines(board) {
-    for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-            if (!board[row][col].isMine) {
-                let count = 0;
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        if (row + i >= 0 && row + i < ROWS && col + j >= 0 && col + j < COLS) {
-                            if (board[row + i][col + j].isMine) count++;
+    <script>
+        const ROWS = 10;
+        const COLS = 10;
+        const MINES = 15;
+
+        let board = [];
+        let gameOver = false;
+
+        function createBoard() {
+            board = [];
+            for (let i = 0; i < ROWS; i++) {
+                board[i] = [];
+                for (let j = 0; j < COLS; j++) {
+                    board[i][j] = {
+                        isMine: false,
+                        isRevealed: false,
+                        neighborMines: 0
+                    };
+                }
+            }
+        }
+
+        function placeMines() {
+            let minesPlaced = 0;
+            while (minesPlaced < MINES) {
+                const row = Math.floor(Math.random() * ROWS);
+                const col = Math.floor(Math.random() * COLS);
+                if (!board[row][col].isMine) {
+                    board[row][col].isMine = true;
+                    minesPlaced++;
+                }
+            }
+        }
+
+        function calculateNeighborMines() {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (!board[row][col].isMine) {
+                        let count = 0;
+                        for (let i = -1; i <= 1; i++) {
+                            for (let j = -1; j <= 1; j++) {
+                                if (row + i >= 0 && row + i < ROWS && col + j >= 0 && col + j < COLS) {
+                                    if (board[row + i][col + j].isMine) count++;
+                                }
+                            }
                         }
+                        board[row][col].neighborMines = count;
                     }
                 }
-                board[row][col].neighborMines = count;
             }
         }
-    }
-}
 
-// 揭示格子
-function revealCell(board, row, col) {
-    if (row < 0 || row >= ROWS || col < 0 || col >= COLS || board[row][col].isRevealed) {
-        return;
-    }
+        function revealCell(row, col) {
+            if (row < 0 || row >= ROWS || col < 0 || col >= COLS || board[row][col].isRevealed || gameOver) {
+                return;
+            }
 
-    board[row][col].isRevealed = true;
+            board[row][col].isRevealed = true;
+            updateCell(row, col);
 
-    if (board[row][col].neighborMines === 0) {
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                revealCell(board, row + i, col + j);
+            if (board[row][col].neighborMines === 0) {
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        revealCell(row + i, col + j);
+                    }
+                }
             }
         }
-    }
-}
 
-// 檢查是否獲勝
-function checkWin(board) {
-    for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-            if (!board[row][col].isMine && !board[row][col].isRevealed) {
-                return false;
+        function checkWin() {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (!board[row][col].isMine && !board[row][col].isRevealed) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function updateCell(row, col) {
+            const cell = document.getElementById(`cell-${row}-${col}`);
+            cell.classList.add('revealed');
+            if (board[row][col].isMine) {
+                cell.classList.add('mine');
+                cell.textContent = '💣';
+            } else if (board[row][col].neighborMines > 0) {
+                cell.textContent = board[row][col].neighborMines;
             }
         }
-    }
-    return true;
-}
 
-// 遊戲主循環
-function playGame() {
-    const board = createBoard();
-    placeMines(board);
-    calculateNeighborMines(board);
+        function handleClick(row, col) {
+            if (gameOver) return;
 
-    while (true) {
-        // 在這裡添加顯示遊戲板的代碼
-        console.log(board);  // 這只是一個簡單的顯示方式，實際應用中應該有更好的視覺呈現
-
-        const row = parseInt(prompt("輸入行號 (0-9):"));
-        const col = parseInt(prompt("輸入列號 (0-9):"));
-
-        if (board[row][col].isMine) {
-            console.log("遊戲結束！你踩到地雷了。");
-            break;
+            if (board[row][col].isMine) {
+                gameOver = true;
+                revealAllMines();
+                document.getElementById('message').textContent = '遊戲結束！你踩到地雷了。';
+            } else {
+                revealCell(row, col);
+                if (checkWin()) {
+                    gameOver = true;
+                    document.getElementById('message').textContent = '恭喜你贏了！';
+                }
+            }
         }
 
-        revealCell(board, row, col);
-
-        if (checkWin(board)) {
-            console.log("恭喜你贏了！");
-            break;
+        function revealAllMines() {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (board[row][col].isMine) {
+                        updateCell(row, col);
+                    }
+                }
+            }
         }
-    }
-}
 
-// 開始遊戲
-playGame();
+        function initializeGame() {
+            createBoard();
+            placeMines();
+            calculateNeighborMines();
+
+            const container = document.getElementById('minesweeper');
+            container.innerHTML = '';
+
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.id = `cell-${row}-${col}`;
+                    cell.className = 'cell';
+                    cell.addEventListener('click', () => handleClick(row, col));
+                    container.appendChild(cell);
+                }
+            }
+
+            gameOver = false;
+            document.getElementById('message').textContent = '';
+        }
+
+        initializeGame();
+    </script>
+</body>
+</html>
