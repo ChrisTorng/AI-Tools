@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>改進觸控支援的圖片比較滑動器</title>
+    <title>照片比較</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,7 +20,7 @@
             width: 100%;
             overflow: hidden;
             margin-bottom: 10px;
-            touch-action: pan-y; /* 允許垂直平移 */
+            touch-action: pan-y;
         }
         .image-compare img {
             display: block;
@@ -47,10 +47,10 @@
             top: 0;
             bottom: 0;
             left: 50%;
-            width: 40px; /* 增加寬度以便於觸控 */
-            background: rgba(255, 255, 255, 0.5);
+            width: 4px; /* 恢復細的分隔線 */
+            background: white;
             cursor: ew-resize;
-            touch-action: none; /* 防止在滑塊上的任何滾動 */
+            touch-action: none;
         }
         .slider:before {
             content: "";
@@ -112,7 +112,7 @@
 
     <script>
         const images = [
-            {"url": "../images/Elementary/畢業紀念照.jpg", "title": "畢業紀念照"},
+            {"url": "../images/Elementary/畢業紀念照.jpg", "title": "原始照片"},
             {"url": "../images/Elementary/畢業紀念照高解析度.jpg", "title": "高解析度"},
             {"url": "../images/Elementary/畢業紀念照 upscale.png", "title": "upscale"},
             {"url": "../images/Elementary/畢業紀念照 supir upscale.png", "title": "supir upscale"},
