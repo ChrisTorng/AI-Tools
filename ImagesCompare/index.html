@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>支援觸控的圖片比較滑動器</title>
+    <title>改進觸控支援的圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,7 +20,7 @@
             width: 100%;
             overflow: hidden;
             margin-bottom: 10px;
-            touch-action: none;
+            touch-action: pan-y; /* 允許垂直平移 */
         }
         .image-compare img {
             display: block;
@@ -47,9 +47,10 @@
             top: 0;
             bottom: 0;
             left: 50%;
-            width: 4px;
-            background: white;
+            width: 40px; /* 增加寬度以便於觸控 */
+            background: rgba(255, 255, 255, 0.5);
             cursor: ew-resize;
+            touch-action: none; /* 防止在滑塊上的任何滾動 */
         }
         .slider:before {
             content: "";
@@ -130,10 +131,13 @@
         const originalImg = document.querySelector('.overlay img');
 
         let isDown = false;
+        let startX;
+        let scrollLeft;
 
         // 鼠標事件
         slider.addEventListener('mousedown', (e) => {
             isDown = true;
+            startX = e.pageX - slider.offsetLeft;
             e.preventDefault();
         });
         document.addEventListener('mouseup', () => isDown = false);
@@ -142,12 +146,15 @@
         // 觸控事件
         slider.addEventListener('touchstart', (e) => {
             isDown = true;
+            startX = e.touches[0].pageX - slider.offsetLeft;
             e.preventDefault();
         });
-        document.addEventListener('touchend', () => isDown = false);
-        document.addEventListener('touchmove', (e) => {
-            if (isDown) e.preventDefault();
-            handleMove(e.touches[0]);
+        slider.addEventListener('touchend', () => isDown = false);
+        slider.addEventListener('touchmove', (e) => {
+            if (isDown) {
+                e.preventDefault();
+                handleMove(e.touches[0]);
+            }
         });
 
         function handleMove(e) {
