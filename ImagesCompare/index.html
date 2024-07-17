@@ -115,16 +115,35 @@
             slider.style.left = `${percent}%`;
         });
 
-        function loadImages() {
+        async function loadImages() {
             const lowResUrl = document.getElementById('lowResUrl').value;
             const highResUrl = document.getElementById('highResUrl').value;
             
             if (lowResUrl && highResUrl) {
-                document.querySelector('.overlay img').src = lowResUrl;
-                document.querySelector('.image-compare > img').src = highResUrl;
+                try {
+                    const lowResDataUrl = await fetchImageAsDataUrl(lowResUrl);
+                    const highResDataUrl = await fetchImageAsDataUrl(highResUrl);
+                    
+                    document.querySelector('.overlay img').src = lowResDataUrl;
+                    document.querySelector('.image-compare > img').src = highResDataUrl;
+                } catch (error) {
+                    console.error('Error loading images:', error);
+                    alert('載入圖片時發生錯誤。請確保URL是有效的，並且允許跨源訪問。');
+                }
             } else {
                 alert('請輸入兩個有效的圖片URL');
             }
+        }
+
+        async function fetchImageAsDataUrl(url) {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
         }
     </script>
 </body>
