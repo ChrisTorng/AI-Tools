@@ -26,6 +26,7 @@
         .image-compare img {
             display: block;
             width: 100%;
+            height: auto;
         }
         .image-compare .overlay {
             position: absolute;
@@ -37,8 +38,10 @@
         }
         .image-compare .overlay img {
             display: block;
-            width: 200%;  /* 改為200% */
-            max-width: none;  /* 防止圖片被限制 */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: left;
         }
         .slider {
             position: absolute;
@@ -101,7 +104,6 @@
         const slider = document.querySelector('.slider');
         const overlay = document.querySelector('.overlay');
         const container = document.querySelector('.image-compare');
-        const overlayImage = overlay.querySelector('img');
 
         let isDown = false;
 
@@ -115,8 +117,6 @@
             
             overlay.style.width = `${percent}%`;
             slider.style.left = `${percent}%`;
-            overlayImage.style.width = `${200 * 100 / percent}%`;
-            overlayImage.style.marginLeft = `${-1 * (100 - percent)}%`;
         });
 
         function loadImages() {
@@ -124,14 +124,12 @@
             const highResUrl = document.getElementById('highResUrl').value;
             
             if (lowResUrl && highResUrl) {
-                overlayImage.src = lowResUrl;
+                document.querySelector('.overlay img').src = lowResUrl;
                 document.querySelector('.image-compare > img').src = highResUrl;
 
-                // 重置滑動條位置和圖片樣式
+                // 重置滑動條位置
                 overlay.style.width = '50%';
                 slider.style.left = '50%';
-                overlayImage.style.width = '200%';
-                overlayImage.style.marginLeft = '0';
             } else {
                 alert('請輸入兩個有效的圖片URL');
             }
