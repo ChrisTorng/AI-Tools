@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高級圖片比較滑動器</title>
+    <title>自動載入圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -63,13 +63,16 @@
         }
         .thumbnails {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .thumbnail {
             width: 18%;
             text-align: center;
             cursor: pointer;
+            margin-right: 2%;
+            margin-bottom: 10px;
         }
         .thumbnail img {
             width: 100%;
@@ -83,40 +86,27 @@
             cursor: default;
             opacity: 0.7;
         }
-        #jsonInput {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 10px;
-        }
-        #loadButton {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        #loadButton:hover {
-            background-color: #45a049;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <textarea id="jsonInput" placeholder="輸入 JSON 圖片配置"></textarea>
-        <button id="loadButton" onclick="loadImagesFromJson()">載入圖片</button>
         <div class="thumbnails" id="thumbnails"></div>
         <div class="image-compare">
-            <img src="/api/placeholder/800/600" alt="比較圖片">
+            <img src="" alt="比較圖片">
             <div class="overlay">
-                <img src="/api/placeholder/800/600" alt="原始圖片">
+                <img src="" alt="原始圖片">
             </div>
             <div class="slider"></div>
         </div>
     </div>
 
     <script>
-        let images = [];
+        // 內嵌 JSON 配置
+        const images = [
+            {"url": "D:\\Projects\\GitHub\\ChrisTorng\\InfoProcess\\images\\eBirdList.png", "title": "原始圖片"},
+            {"url": "D:\\Projects\\GitHub\\ChrisTorng\\InfoProcess\\images\\eBirdTable.png", "title": "高解析度圖片"}
+        ];
+
         const slider = document.querySelector('.slider');
         const overlay = document.querySelector('.overlay');
         const container = document.querySelector('.image-compare');
@@ -138,26 +128,11 @@
             slider.style.left = `${percent}%`;
         });
 
-        function loadImagesFromJson() {
-            try {
-                const json = JSON.parse(document.getElementById('jsonInput').value);
-                if (Array.isArray(json) && json.length === 5) {
-                    images = json;
-                    renderThumbnails();
-                    setCompareImage(1);  // 設置第二張圖片作為初始比較圖
-                } else {
-                    throw new Error('JSON 必須包含恰好 5 張圖片的數組');
-                }
-            } catch (error) {
-                alert('無效的 JSON 格式: ' + error.message);
-            }
-        }
-
         function renderThumbnails() {
             thumbnailsContainer.innerHTML = '';
             images.forEach((img, index) => {
                 const thumbnail = document.createElement('div');
-                thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
+                thumbnail.className = 'thumbnail' + (index === 0 || index === 1 ? ' active' : '');
                 thumbnail.innerHTML = `
                     <img src="${img.url}" alt="${img.title}">
                     <div>${img.title}</div>
@@ -168,6 +143,7 @@
                 thumbnailsContainer.appendChild(thumbnail);
             });
             originalImg.src = images[0].url;
+            compareImg.src = images[1].url;
         }
 
         function setCompareImage(index) {
@@ -176,6 +152,9 @@
                 thumb.classList.toggle('active', i === 0 || i === index);
             });
         }
+
+        // 頁面加載時自動渲染縮圖和載入圖片
+        window.onload = renderThumbnails;
     </script>
 </body>
 </html>
