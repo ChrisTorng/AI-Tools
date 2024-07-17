@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>優化寬度的圖片比較滑動器</title>
+    <title>動態縮圖的圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background-color: #f0f0f0;
         }
         .container {
@@ -19,7 +19,7 @@
             position: relative;
             width: 100%;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .image-compare img {
             display: block;
@@ -63,20 +63,21 @@
         }
         .thumbnails {
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
         }
         .thumbnail {
-            flex-basis: calc(20% - 10px);
-            margin-bottom: 10px;
+            flex: 0 0 auto;
+            margin-right: 5px;
             text-align: center;
             cursor: pointer;
         }
         .thumbnail img {
-            width: 100%;
-            height: auto;
-            margin-bottom: 5px;
+            height: 60px;
+            width: auto;
+            max-width: none;
         }
         .thumbnail.active {
             border: 2px solid #4CAF50;
@@ -86,10 +87,11 @@
             opacity: 0.7;
         }
         .thumbnail-title {
-            font-size: 12px;
+            font-size: 10px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            max-width: 100px;
         }
     </style>
 </head>
