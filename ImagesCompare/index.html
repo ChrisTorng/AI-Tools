@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>動態縮圖的圖片比較滑動器</title>
+    <title>支援觸控的圖片比較滑動器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,6 +20,7 @@
             width: 100%;
             overflow: hidden;
             margin-bottom: 10px;
+            touch-action: none;
         }
         .image-compare img {
             display: block;
@@ -53,8 +54,8 @@
         .slider:before {
             content: "";
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 40px;
+            height: 40px;
             background: white;
             border-radius: 50%;
             top: 50%;
@@ -63,10 +64,11 @@
         }
         .thumbnails {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             margin-bottom: 10px;
             flex-wrap: nowrap;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .thumbnail {
             flex: 0 0 auto;
@@ -129,17 +131,34 @@
 
         let isDown = false;
 
-        slider.addEventListener('mousedown', () => isDown = true);
+        // 鼠標事件
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            e.preventDefault();
+        });
         document.addEventListener('mouseup', () => isDown = false);
-        document.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', handleMove);
+
+        // 觸控事件
+        slider.addEventListener('touchstart', (e) => {
+            isDown = true;
+            e.preventDefault();
+        });
+        document.addEventListener('touchend', () => isDown = false);
+        document.addEventListener('touchmove', (e) => {
+            if (isDown) e.preventDefault();
+            handleMove(e.touches[0]);
+        });
+
+        function handleMove(e) {
             if (!isDown) return;
             const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
+            const x = (e.clientX || e.pageX) - rect.left;
             const percent = Math.max(0, Math.min(100, x / rect.width * 100));
             
             overlay.style.width = `${percent}%`;
             slider.style.left = `${percent}%`;
-        });
+        }
 
         function renderThumbnails() {
             thumbnailsContainer.innerHTML = '';
@@ -152,6 +171,10 @@
                 `;
                 if (index > 0) {
                     thumbnail.onclick = () => setCompareImage(index);
+                    thumbnail.ontouchend = (e) => {
+                        e.preventDefault();
+                        setCompareImage(index);
+                    };
                 }
                 thumbnailsContainer.appendChild(thumbnail);
             });
