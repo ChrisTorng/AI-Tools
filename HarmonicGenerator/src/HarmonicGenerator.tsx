@@ -78,7 +78,7 @@ const HarmonicGenerator: React.FC = () => {
       drawWaveform(real, imag);
     }
   };
-
+  
   const handlePlayStop = () => {
     if (isPlaying) {
       oscillator?.stop();
@@ -100,7 +100,7 @@ const HarmonicGenerator: React.FC = () => {
     setHarmonics(newHarmonics);
     updateOscillator();
   };
-
+  
   const handleHarmonicToggle = (index: number) => {
     const newHarmonics = harmonics.map((h, i) => 
       i === index ? { ...h, enabled: !h.enabled } : h
@@ -108,7 +108,7 @@ const HarmonicGenerator: React.FC = () => {
     setHarmonics(newHarmonics);
     updateOscillator();
   };
-
+  
   const setPresetWaveform = (type: string) => {
     let newHarmonics: Harmonic[];
     switch (type) {
@@ -140,32 +140,32 @@ const HarmonicGenerator: React.FC = () => {
     updateOscillator();
   };
 
-  const drawWaveform = (real: Float32Array, imag: Float32Array) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+const drawWaveform = (real: Float32Array, imag: Float32Array) => {
+  const canvas = canvasRef.current;
+  if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-    const width = canvas.width;
-    const height = canvas.height;
-    ctx.clearRect(0, 0, width, height);
-    ctx.beginPath();
-    ctx.moveTo(0, height / 2);
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+  ctx.beginPath();
+  ctx.moveTo(0, height / 2);
 
-    for (let i = 0; i < width; i++) {
-      let t = i / width * Math.PI * 2;
-      let y = 0;
-      for (let n = 1; n < real.length; n++) {
-        y += real[n] * Math.cos(n * t) - imag[n] * Math.sin(n * t);
-      }
-      y = -y * height / 4 + height / 2;
-      ctx.lineTo(i, y);
+  for (let i = 0; i < width; i++) {
+    let t = i / width * Math.PI * 2;
+    let y = 0;
+    for (let n = 0; n < real.length; n++) {
+      y += real[n] * Math.cos(n * t) - imag[n] * Math.sin(n * t);
     }
+    y = -y * height / 4 + height / 2;
+    ctx.lineTo(i, y);
+  }
 
-    ctx.strokeStyle = 'blue';
-    ctx.stroke();
-  };
+  ctx.strokeStyle = 'blue';
+  ctx.stroke();
+};
 
   return (
     <div className="container">
