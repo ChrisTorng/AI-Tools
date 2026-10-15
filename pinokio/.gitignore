@@ -1,4 +1,0 @@
-# Downloaded binaries, models and local user audio are not source files.
-apps/
-*.partial
-*.tmp
